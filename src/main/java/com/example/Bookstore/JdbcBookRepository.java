@@ -16,7 +16,7 @@ public class JdbcBookRepository implements BookRepository {
     @Override
     public int save(Book book) {
         return jdbcTemplate.update("INSERT INTO book (title, author) VALUES (?, ?)",
-                new Object[] { book.getTitle(), book.getAuthor() });
+                new Object[] { book.getTitle(), book.getAuthor() }); // не уверен, что так хорошо, но выебываться не буду
     }
 
     @Override
@@ -31,7 +31,7 @@ public class JdbcBookRepository implements BookRepository {
             return jdbcTemplate.queryForObject("SELECT * FROM book WHERE id=?",
                     BeanPropertyRowMapper.newInstance(Book.class), id);
         } catch (IncorrectResultSizeDataAccessException e) {
-            return null;
+            return null; // TOOD лучше возвращать Optional в таком случае
         }
     }
 

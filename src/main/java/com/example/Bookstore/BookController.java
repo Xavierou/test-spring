@@ -7,12 +7,16 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Optional;
 
+/**
+ *
+ */
 @CrossOrigin(origins="http://localhost:8081")
 @RestController
 @RequestMapping("/api")
 public class BookController {
-    @Autowired
+    @Autowired //Можно использовать Autowired, но в Spring по дефолту использует коструктор по умолчанию
     BookRepository bookRepository;
 
     @GetMapping("/books")
@@ -25,7 +29,7 @@ public class BookController {
             if (title == null)
                 books.addAll(bookRepository.findAll());
             else
-                books.addAll(bookRepository.findByTitle(title));
+                books.addAll(bookRepository.findByTitle(title)); //TODO зачем?
 
             if (books.isEmpty()) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -33,7 +37,7 @@ public class BookController {
 
             return new ResponseEntity<>(books, HttpStatus.OK);
         } catch(Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR); //TODO можно по-другому
         }
     }
 
@@ -43,13 +47,18 @@ public class BookController {
     ) {
         Book book = bookRepository.findById(id);
 
-        if (book != null)
-            return new ResponseEntity<>(book, HttpStatus.OK);
-        else
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        // TODO ФП вариант
+        return Optional.ofNullable(book)
+                .map(b -> ResponseEntity.ok().body(b))
+                .orElse(ResponseEntity.notFound().build());
+
+//        if (book != null)
+//            return new ResponseEntity<>(book, HttpStatus.OK);
+//        else
+//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping("/books")
+    @PostMapping("/books") //TODO лучше /book, так как ты одну книгу добавляешь
     public ResponseEntity<String> addBook(
             @RequestBody Book book
     ) {
@@ -57,7 +66,8 @@ public class BookController {
             bookRepository.save(new Book(book.getTitle(), book.getAuthor()));
             return new ResponseEntity<>("Book was added successfully.", HttpStatus.CREATED);
         } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+//            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.internalServerError().build(); //TODO так лучше, без null ссылок
         }
     }
 
@@ -69,7 +79,7 @@ public class BookController {
         Book _book = bookRepository.findById(id);
 
         if (_book != null) {
-            _book.setId(id);
+            _book.setId(id); //TODO маппинги лучше декомпозировать в отдельный метод и класс маппер
             _book.setTitle(book.getTitle());
             _book.setAuthor(book.getAuthor());
 
