@@ -8,6 +8,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * TODO описать Docker Compose конфигурацию, чтобы можно было одной командой запустить и приложение, и БД
+ */
 @Repository
 public class JdbcBookRepository implements BookRepository {
 

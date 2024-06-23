@@ -10,19 +10,31 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 /**
- *
+ * TODO
+ * OpenAPI (Swagger)
+ * @see <a href="https://github.com/springdoc/springdoc-openapi">Springdoc</a>
+ * 1) добавить зависимость на эту библиотеку в POM
+ * 2) проставить аннотации на каждую ручку и описать, как ей пользоваться в сваггере
+ * 3) попробовать запустить локально приложение и открыть http://localhost:8080/swagger-ui/index.html
  */
 @CrossOrigin(origins="http://localhost:8081")
 @RestController
 @RequestMapping("/api")
 public class BookController {
     @Autowired //Можно использовать Autowired, но в Spring по дефолту использует коструктор по умолчанию
-    BookRepository bookRepository;
+    private BookRepository bookRepository;
+
+    @Autowired
+    private IEntityMapper entityMapper;
 
     @GetMapping("/books")
     public ResponseEntity<List<Book>> getAllBooks(
             @RequestParam(required = false) String title
     ) {
+        /*
+            TODO избавиться от try catch в слое контроллеров на ExceptionHandler
+            https://www.baeldung.com/exception-handling-for-rest-with-spring
+         */
         try {
             List<Book> books = new ArrayList<Book>();
 
@@ -30,6 +42,13 @@ public class BookController {
                 books.addAll(bookRepository.findAll());
             else
                 books.addAll(bookRepository.findByTitle(title)); //TODO зачем?
+
+//            TODO почитать про Optional в Java
+//            Optional.ofNullable(title)
+//                    .ifPresentOrElse(
+//                            t -> books.addAll(bookRepository.findByTitle(title)),
+//                            () -> books.addAll(bookRepository.findAll())
+//                    );
 
             if (books.isEmpty()) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -60,8 +79,11 @@ public class BookController {
 
     @PostMapping("/books") //TODO лучше /book, так как ты одну книгу добавляешь
     public ResponseEntity<String> addBook(
-            @RequestBody Book book
+            @RequestBody BookRq book
     ) {
+        // String -> Book
+        // ObjectMapper (Jackson)
+        // DTO - Data Transfer Object
         try {
             bookRepository.save(new Book(book.getTitle(), book.getAuthor()));
             return new ResponseEntity<>("Book was added successfully.", HttpStatus.CREATED);
@@ -74,19 +96,18 @@ public class BookController {
     @PutMapping("/books/{id}")
     public ResponseEntity<String> updateBook(
             @PathVariable("id") long id,
-            @RequestBody Book book
+            @RequestBody BookRq requestBody
     ) {
-        Book _book = bookRepository.findById(id);
+        var entity = bookRepository.findById(id);
 
-        if (_book != null) {
-            _book.setId(id); //TODO маппинги лучше декомпозировать в отдельный метод и класс маппер
-            _book.setTitle(book.getTitle());
-            _book.setAuthor(book.getAuthor());
-
-            bookRepository.update(_book);
-            return new ResponseEntity<>("Book was updated successfully.", HttpStatus.OK);
-        } else
+        if (entity == null) {
             return new ResponseEntity<>("Cannot find Book with specified id (" + id + ")", HttpStatus.NOT_FOUND);
+        }
+
+        var mapped = entityMapper.map(id, requestBody);
+
+        bookRepository.update(mapped);
+        return new ResponseEntity<>("Book was updated successfully.", HttpStatus.OK);
     }
 
     @DeleteMapping("/tutorials/{id}")
