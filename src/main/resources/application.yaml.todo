@@ -1,0 +1,8 @@
+# TODO
+spring:
+  application:
+    name: Bookstore
+  datasource:
+    url: jdbc:postgresql://localhost:5432/books
+    username: postgres
+    password: 1234
