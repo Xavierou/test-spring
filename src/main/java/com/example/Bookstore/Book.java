@@ -1,5 +1,6 @@
 package com.example.Bookstore;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 /**
@@ -10,14 +11,19 @@ import lombok.*;
 @Setter
 @ToString
 @Builder
+@Schema(description = "Сущность книги")
 public class Book {
+    @Schema(description = "Номер книги")
     private long id;
-    private String title;
-    private String author;
-    private String subauthors;
 
-    public Book(String title, String author) {
-        this.title = title;
-        this.author = author;
-    }
+    @Schema(description = "Название книги")
+    private String title;
+
+    @Schema(description = "Автор книги")
+    private String author;
+
+//    public Book(String title, String author) {
+//        this.title = title;
+//        this.author = author;
+//    }
 }
